@@ -1,0 +1,68 @@
+﻿@page "/"
+@using Specifications.Models
+
+<PageTitle>Home</PageTitle>
+
+<h1>I.SCR.DEV</h1>
+Welcome to your new app.
+<div class="container">
+	<div class="d-flex flex-column border rounded border-secondary p-5" style="min-height:800px">
+		<div class="d-flex justify-content-end gap-3">
+			<!--Price input-->
+
+			<div class="input-group  w-25" data-bs-theme="dark">
+				<span class="input-group-text">$</span>
+				<span class="input-group-text">0.00</span>
+				<input type="number" step="0.1" min="0" max="1000" class="form-control" aria-label="Dollar amount (with dot and two decimal places)" @bind="@HourPirce">
+			</div>
+			<!--ADD button-->
+			<button class="btn btn-outline-secondary" @onclick="AddSpecification">+ Add specification </button>
+
+			@if (SpecificationsListToDelete.Count > 0)
+			{
+				<!--delete button-->
+				<button class="btn btn-outline-danger" @onclick="RemoveSelectedSpecifications">- Delete </button>
+			}
+		</div>
+		@if (SpecificationsList.Count > 0)
+		{
+			<div class="row w-100">
+				<h4><i class="fa-solid fa-clock-rotate-left "></i> Historique </h4>
+				<Grid @ref="SpecificationsGrid"
+					  TItem="SpeceficationsModel"
+					  Class="table table-bordered table-striped text-center  "
+					  DataProvider="DataProvider"
+					  AllowSelection="true"
+					  SelectionMode="GridSelectionMode.Multiple"
+					  @bind-SelectedItems="@SpecificationsListToDelete"
+					  AllowSorting="true"
+					  Responsive="true"
+					  AllowSummary="true"
+					  FixedHeader="true"
+					  HeaderRowCssClass="bg-dark text-white border-bottom-0">
+					<GridColumns>
+						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Title" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" Sortable=false>
+							@context.Title
+						</GridColumn>
+						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Description" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" Sortable=false>
+							@context.Description
+						</GridColumn>
+						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Description" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" Sortable=false>
+							@context.Description
+						</GridColumn>
+						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Duration" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" SortKeySelector="item => item.Duration" Sortable=true 
+						>
+							@context.Duration
+						</GridColumn>
+						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Progess" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" SortKeySelector="item => item.StatusProgess" Sortable=true>
+							@context.StatusProgess
+						</GridColumn>
+
+					</GridColumns>
+				</Grid>
+			</div>
+
+		}
+	</div>
+</div>
+<!--Table-->
