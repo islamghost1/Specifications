@@ -5,6 +5,7 @@ using iTextSharp.tool.xml;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Specifications.Models;
+using System.Globalization;
 using System.Reflection.Metadata;
 using System.Text.Json;
 using System.Xml.Linq;
@@ -16,6 +17,7 @@ namespace Specifications.Components.Pages
     {
         public string? Error;
         public double HourPirce;
+        public double ConvertionPrice;
         public string ProjectTitle = "Project Name";
         private bool disposed;
         private bool isInitialized = false;
@@ -440,7 +442,7 @@ namespace Specifications.Components.Pages
 
                     // Add summary information
                     var summaryFont = FontFactory.GetFont(FontFactory.HELVETICA, 12, BaseColor.LIGHT_GRAY);
-                    var summary = new Paragraph($"Total Hours: {GetTotalHours():F1} hrs | Total Cost: {GetTotalCost():C2} | Hourly Rate: {HourPirce:C2}/hr", summaryFont);
+                    var summary = new Paragraph($"Total Hours: {GetTotalHours():F1} hrs | Total Cost: {GetTotalCost():C2} |Total Cost DA: {(GetTotalCost()*ConvertionPrice).ToString("C2", CultureInfo.GetCultureInfo("fr-DZ"))} | Hourly Rate: {HourPirce:C2}/hr", summaryFont);
                     summary.Alignment = Element.ALIGN_CENTER;
                     summary.SpacingAfter = 20f;
                     document.Add(summary);
