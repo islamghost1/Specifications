@@ -1,4 +1,5 @@
 using Specifications.Components;
+using Specifications.Components.Pages;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddBlazorBootstrap();
+builder.Services.AddScoped<Home>();
+// Enable detailed circuit errors for debugging
+builder.Services.AddServerSideBlazor()
+    .AddCircuitOptions(options => { options.DetailedErrors = true; });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

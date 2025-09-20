@@ -16,7 +16,7 @@ namespace Specifications.Components.Pages
     {
         public string? Error;
         public double HourPirce;
-        public string ProjectTitle = "Lavage Auto";
+        public string ProjectTitle = "Project Name";
         private bool disposed;
         private bool isInitialized = false;
         private readonly string specificationsDataFolder = "SpecificationsData";
@@ -40,7 +40,9 @@ namespace Specifications.Components.Pages
             await LoadAvailableFiles();
 
             // Setup auto-save timer (saves every 30 seconds if there are changes)
-            autoSaveTimer = new Timer(AutoSaveCallback, null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+            autoSaveTimer = new Timer(async state => await AutoSaveCallback(state), null,
+                          TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
+
 
             await base.OnInitializedAsync();
         }
@@ -157,20 +159,21 @@ namespace Specifications.Components.Pages
         /// <summary>
         /// Auto-save callback for timer
         /// </summary>
-        private async void AutoSaveCallback(object? state)
+        private Task AutoSaveCallback(object? state)
         {
-            if (hasUnsavedChanges && SpecificationsList.Count > 0)
+            return InvokeAsync(async () =>
             {
-                // If no current save file, create a new one
-                if (string.IsNullOrEmpty(currentSaveFile))
+                if (hasUnsavedChanges && SpecificationsList.Count > 0)
                 {
-                    currentSaveFile = $"{ProjectTitle}_{DateTime.Now:yyyyMMdd_HHmmss}.json";
-                }
+                    if (string.IsNullOrEmpty(currentSaveFile))
+                        currentSaveFile = $"{ProjectTitle}_{DateTime.Now:yyyyMMdd_HHmmss}.json";
 
-                await SaveToJsonFile(currentSaveFile);
-                hasUnsavedChanges = false;
-            }
+                    await SaveToJsonFile(currentSaveFile);
+                    hasUnsavedChanges = false;
+                }
+            });
         }
+
 
         /// <summary>
         /// Saves the current specifications list to a JSON file
@@ -612,7 +615,7 @@ namespace Specifications.Components.Pages
         private void OnFileSelected(ChangeEventArgs e)
         {
             selectedFileName = e.Value?.ToString() ?? string.Empty;
-            StateHasChanged();
+            InvokeAsync(StateHasChanged);
         }
 
         /// <summary>
@@ -635,7 +638,7 @@ namespace Specifications.Components.Pages
             {
                 await DeleteJsonFile(selectedFileName);
                 selectedFileName = string.Empty; // Clear selection after deletion
-                StateHasChanged();
+                await InvokeAsync(StateHasChanged);
             }
         }
 
@@ -677,7 +680,7 @@ namespace Specifications.Components.Pages
             isInitialized = false;
 
             // Dispose timer
-            autoSaveTimer?.Dispose();
+            autoSaveTimer?.DisposeAsync();
 
             // Save any unsaved changes before disposing
             if (hasUnsavedChanges && SpecificationsList.Count > 0)

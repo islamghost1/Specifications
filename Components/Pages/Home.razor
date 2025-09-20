@@ -16,9 +16,17 @@ Welcome to your new app.
     </div>
 }
 
-<div class="container">
+<div class="container-fluid">
     <div class="d-flex flex-column border rounded border-secondary p-5" style="min-height:800px">
-        <h1>@ProjectTitle</h1>
+        <h1>
+            <div class="input-group w-25" data-bs-theme="dark">
+                <span class="input-group-text"><i class="fa-solid fa-diagram-project"></i></span>
+                <input type="string"
+                       class="form-control"
+                       placeholder="Project Name"
+                       @bind="@ProjectTitle">
+            </div>
+        </h1>
 
         <div class="d-flex justify-content-end gap-3 my-3">
             <!-- Custom Summary Footer -->
@@ -67,6 +75,7 @@ Welcome to your new app.
         {
             <!-- Add a key to help Blazor track the Grid component properly -->
             <Grid @ref="SpecificationsGrid"
+                  
                   TItem="SpeceficationsModel"
                   Class="table table-bordered table-striped text-center"
                   DataProvider="DataProvider"
@@ -79,7 +88,7 @@ Welcome to your new app.
                   PageSize="8"
                   HeaderRowCssClass="bg-dark text-white border-bottom-0">
                 <GridColumns>
-                    <GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Title" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" PropertyName="Title" Sortable=false>
+                    <GridColumn TItem="SpeceficationsModel" Class="text-secondary"  HeaderText="Title" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" PropertyName="Title" Sortable=false>
                         <div class="input-group">
                             <input type="text" class="form-control" placeholder="@context.Title" @bind="@context.Title" @bind:after="OnSpecificationChanged" aria-label="@context.Title" data-bs-theme="dark">
                         </div>
