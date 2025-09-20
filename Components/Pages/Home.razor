@@ -5,64 +5,104 @@
 
 <h1>I.SCR.DEV</h1>
 Welcome to your new app.
-<div class="container">
-	<div class="d-flex flex-column border rounded border-secondary p-5" style="min-height:800px">
-		<div class="d-flex justify-content-end gap-3">
-			<!--Price input-->
 
-			<div class="input-group  w-25" data-bs-theme="dark">
-				<span class="input-group-text">$</span>
-				<span class="input-group-text">0.00</span>
-				<input type="number" step="0.1" min="0" max="1000" class="form-control" aria-label="Dollar amount (with dot and two decimal places)" @bind="@HourPirce">
-			</div>
-			<!--ADD button-->
-			<button class="btn btn-outline-secondary" @onclick="AddSpecification">+ Add specification </button>
+@if (!string.IsNullOrEmpty(Error))
+{
+    <div class="alert alert-danger" role="alert">
+        @Error
+        <button type="button" class="btn-close" @onclick="() => Error = null"></button>
+    </div>
+}
 
-			@if (SpecificationsListToDelete.Count > 0)
-			{
-				<!--delete button-->
-				<button class="btn btn-outline-danger" @onclick="RemoveSelectedSpecifications">- Delete </button>
-			}
-		</div>
-		@if (SpecificationsList.Count > 0)
-		{
-			<div class="row w-100">
-				<h4><i class="fa-solid fa-clock-rotate-left "></i> Historique </h4>
-				<Grid @ref="SpecificationsGrid"
-					  TItem="SpeceficationsModel"
-					  Class="table table-bordered table-striped text-center  "
-					  DataProvider="DataProvider"
-					  AllowSelection="true"
-					  SelectionMode="GridSelectionMode.Multiple"
-					  @bind-SelectedItems="@SpecificationsListToDelete"
-					  AllowSorting="true"
-					  Responsive="true"
-					  AllowSummary="true"
-					  FixedHeader="true"
-					  HeaderRowCssClass="bg-dark text-white border-bottom-0">
-					<GridColumns>
-						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Title" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" Sortable=false>
-							@context.Title
-						</GridColumn>
-						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Description" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" Sortable=false>
-							@context.Description
-						</GridColumn>
-						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Description" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" Sortable=false>
-							@context.Description
-						</GridColumn>
-						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Duration" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" SortKeySelector="item => item.Duration" Sortable=true 
-						>
-							@context.Duration
-						</GridColumn>
-						<GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Progess" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" SortKeySelector="item => item.StatusProgess" Sortable=true>
-							@context.StatusProgess
-						</GridColumn>
+<div class="container-fluid">
+    <div class="d-flex flex-column border rounded border-secondary p-5" style="min-height:800px">
+        <h1>@ProjectTitle</h1>
+        <div class="d-flex justify-content-end gap-3 my-3">
+            <!-- Custom Summary Footer -->
 
-					</GridColumns>
-				</Grid>
-			</div>
+            <div class="input-group w-25" data-bs-theme="dark">
+                <span class="input-group-text"><i class="fa-solid fa-clock"></i></span>
+                <input type="number" step="0.1" min="0" max="1000"
+                       class="form-control"
+                       placeholder="@GetTotalHours().ToString("F1") hrs"
+                       disabled id="TotalHours">
+            </div>
+            <div class="input-group w-25" data-bs-theme="dark">
+                <span class="input-group-text">Total</span>
+                <span class="input-group-text">$</span>
+                <input type="number" step="0.1" min="0" max="1000"
+                       class="form-control fw-bold text-success"
+                       placeholder="@GetTotalCost().ToString("C2")"
+                       disabled
+                       id="TotalCost">
+            </div>
 
-		}
-	</div>
+            <!--Price input-->
+            <div class="input-group" style="width:15%" data-bs-theme="dark">
+                <span class="input-group-text">$/h</span>
+                <input type="number" step="0.1" min="0" max="1000"
+                       class="form-control"
+                       @bind="@HourPirce"
+                       @bind:after="RefreshGrid">
+            </div>
+
+            <!--ADD button-->
+            <button class="btn btn-outline-secondary" @onclick="AddSpecification">+ Add specification</button>
+
+            @if (SpecificationsListToDelete.Count > 0)
+            {
+                <!--delete button-->
+                <button class="btn btn-outline-danger" @onclick="RemoveSelectedSpecifications">- Delete</button>
+            }
+            <!--PDF-->
+            <button class="btn btn-outline-primary" @onclick="AddSpecification"><i class="fa-regular fa-file-pdf"></i> PDF</button>
+        </div>
+
+        @if (SpecificationsList.Count > 0)
+        {
+            <!-- Add a key to help Blazor track the Grid component properly -->
+            <Grid @ref="SpecificationsGrid"
+                  TItem="SpeceficationsModel"
+                  Class="table table-bordered table-striped text-center"
+                  DataProvider="DataProvider"
+                  AllowSelection="true"
+                  SelectionMode="GridSelectionMode.Multiple"
+                  @bind-SelectedItems="@SpecificationsListToDelete"
+                  AllowSorting="true"
+                  Responsive="true"
+                  PageSize="8"
+                  AllowPaging="true"
+                  HeaderRowCssClass="bg-dark text-white border-bottom-0">
+                <GridColumns>
+                    <GridColumn TItem="SpeceficationsModel" Class="text-secondary " HeaderText="Title" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" PropertyName="Title" Sortable=false>
+                        <div class="input-group">
+                            <input type="text"  class="form-control" placeholder="@context.Title" @bind="@context.Title" aria-label="@context.Title" data-bs-theme="dark">
+                        </div>
+                    </GridColumn>
+                    <GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Description" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" PropertyName="Description" Sortable=false>
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="@context.Description" @bind="@context.Description" aria-label="@context.Description" data-bs-theme="dark">
+                        </div>
+                    </GridColumn>
+                    <GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Duration (hrs)" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" PropertyName="Duration" SortKeySelector="item => item.Duration">
+                        <div class="input-group">
+                            <input type="number" step="0.1" min="0.1" max="@double.MaxValue" class="form-control" @bind="@context.Duration" aria-label="@context.Duration" data-bs-theme="dark">
+                        </div>
+                    </GridColumn>
+                    <GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Cost ($)" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center">
+                        @((context.Duration * HourPirce).ToString("C2"))
+                    </GridColumn>
+                    <GridColumn TItem="SpeceficationsModel" Class="text-secondary" HeaderText="Progress" HeaderTextAlignment="Alignment.Center" TextAlignment="Alignment.Center" PropertyName="StatusProgess" SortKeySelector="item => item.StatusProgess" Sortable=true>
+                        @context.StatusProgess
+                    </GridColumn>
+                </GridColumns>
+            </Grid>
+        }
+        else
+        {
+            <div class="text-center text-muted mt-5">
+                <p>No specifications added yet. Click "Add specification" to get started.</p>
+            </div>
+        }
+    </div>
 </div>
-<!--Table-->

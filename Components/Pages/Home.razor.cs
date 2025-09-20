@@ -8,18 +8,22 @@ namespace Specifications.Components.Pages
     {
         public string? Error;
         public double HourPirce;
+        public string ProjectTitle = "Lavage Auto";
         private bool disposed;
+        private bool isInitialized = false;
+
+        // Add OnInitializedAsync to ensure proper component initialization
+        protected override async Task OnInitializedAsync()
+        {
+            isInitialized = true;
+            await base.OnInitializedAsync();
+        }
+
         public async Task AddSpecification()
         {
             try
             {
-                var specifications = new SpeceficationsModel
-                {
-                    Title = "Title",
-                    Description = "Description",
-                    Version = "0.0",
-                    Duration = 0.0
-                };
+                var specifications = new SpeceficationsModel();
                 SpecificationsList.Add(specifications);
             }
             catch (Exception ex)
@@ -28,14 +32,20 @@ namespace Specifications.Components.Pages
             }
             finally
             {
-                if (SpecificationsGrid is not null && !disposed)
-                {
-                    await InvokeAsync(() => SpecificationsGrid.RefreshDataAsync());
-                }
-
-                Console.WriteLine("Specification added successfully.");
+                await RefreshGrid();
             }
         }
+
+        private double GetTotalHours()
+        {
+            return SpecificationsList.Sum(x => x.Duration);
+        }
+
+        private double GetTotalCost()
+        {
+            return SpecificationsList.Sum(x => x.Duration) * HourPirce;
+        }
+
         public async Task removeSpecification(SpeceficationsModel specefication)
         {
             try
@@ -51,34 +61,86 @@ namespace Specifications.Components.Pages
             }
             finally
             {
-                if (SpecificationsGrid != null)
-                {
-                    await SpecificationsGrid.RefreshDataAsync();
-                }
-
+                await RefreshGrid();
             }
         }
+
         public async Task RemoveSelectedSpecifications()
         {
-            foreach (var item in SpecificationsListToDelete)
+            try
             {
-                await removeSpecification(item);
+                // Create a copy of the list to avoid collection modification issues
+                var itemsToRemove = SpecificationsListToDelete.ToList();
+
+                foreach (var item in itemsToRemove)
+                {
+                    SpecificationsList.Remove(item);
+                }
+
+                // Clear the selection after deletion
+                SpecificationsListToDelete.Clear();
+            }
+            catch (Exception ex)
+            {
+                Error = ex.Message;
+            }
+            finally
+            {
+                await RefreshGrid();
             }
         }
 
-        //grid 
+        private async Task RefreshGrid()
+        {
+            if (SpecificationsGrid is not null && !disposed && isInitialized)
+            {
+                try
+                {
+                    await InvokeAsync(async () =>
+                    {
+                        await SpecificationsGrid.RefreshDataAsync();
+                        StateHasChanged();
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error refreshing grid: {ex.Message}");
+                }
+            }
+        }
+
+        // Grid properties
         List<SpeceficationsModel> SpecificationsList = new();
         HashSet<SpeceficationsModel> SpecificationsListToDelete = new();
-
         private Grid<SpeceficationsModel> SpecificationsGrid = default!;
+
         private async Task<GridDataProviderResult<SpeceficationsModel>> DataProvider(GridDataProviderRequest<SpeceficationsModel> request)
         {
-            return await Task.FromResult(request.ApplyTo(SpecificationsList));
+            try
+            {
+                return await Task.FromResult(request.ApplyTo(SpecificationsList));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DataProvider: {ex.Message}");
+                return new GridDataProviderResult<SpeceficationsModel>
+                {
+                    Data = new List<SpeceficationsModel>(),
+                    TotalCount = 0
+                };
+            }
         }
+
         public async ValueTask DisposeAsync()
         {
             disposed = true;
+            isInitialized = false;
+
+            // Clear collections to prevent memory leaks
+            SpecificationsList?.Clear();
+            SpecificationsListToDelete?.Clear();
+
+            await Task.CompletedTask;
         }
     }
-
 }

@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="3.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
 </Project>
